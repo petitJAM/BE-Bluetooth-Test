@@ -7,14 +7,14 @@ import java.util.Set;
 import java.util.UUID;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.ParcelUuid;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -98,6 +98,7 @@ public class MainActivity extends Activity {
 				@Override
 				public void onClick(View v) {
 					try {
+						Log.d(BT, "writing: \"" + new String(msg) + "\"");
 						mmOutputStream.write(msg);
 					} catch (IOException e) {}
 				}
@@ -148,71 +149,7 @@ public class MainActivity extends Activity {
 
 			workerThread.start();
 
-		} catch (IOException e) {
-		}
-
-		// mBluetoothDevice = mBluetoothAdapter.getRemoteDevice(uuidStr);
-		//
-		// (new AcceptThread()).run();
+		} catch (IOException e) {}
+		
 	}
-
-	public void manageConnectedSocket(BluetoothSocket socket) {
-		Log.d(BT, "Here I will do something with this connection");
-	}
-
-	private class AcceptThread extends Thread {
-		private final BluetoothServerSocket mmServerSocket;
-
-		public AcceptThread() {
-			// Use a temporary object that is later assigned to mmServerSocket,
-			// because mmServerSocket is final
-			BluetoothServerSocket tmp = null;
-			try {
-				for (ParcelUuid pu : mBluetoothDevice.getUuids()) {
-					Log.d(BT, pu.getUuid().toString());
-				}
-				UUID uuid = mBluetoothDevice.getUuids()[0].getUuid();
-
-				// MY_UUID is the app's UUID string, also used by the client
-				// code
-				tmp = mBluetoothAdapter.listenUsingRfcommWithServiceRecord(
-						mBluetoothDevice.getName(), uuid);
-			} catch (IOException e) {
-			}
-			mmServerSocket = tmp;
-		}
-
-		public void run() {
-			BluetoothSocket socket = null;
-			// Keep listening until exception occurs or a socket is returned
-			while (true) {
-				try {
-					Log.d(BT, "attempting to connect");
-					socket = mmServerSocket.accept();
-				} catch (IOException e) {
-					break;
-				}
-				// If a connection was accepted
-				if (socket != null) {
-					Log.d(BT, "a connection was accepted");
-					// Do work to manage the connection (in a separate thread)
-					manageConnectedSocket(socket);
-					try {
-						mmServerSocket.close();
-					} catch (IOException e) {
-					}
-					break;
-				}
-			}
-		}
-
-		/** Will cancel the listening socket, and cause the thread to finish */
-		public void cancel() {
-			try {
-				mmServerSocket.close();
-			} catch (IOException e) {
-			}
-		}
-	}
-
 }
